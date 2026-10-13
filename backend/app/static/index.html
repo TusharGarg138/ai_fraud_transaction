@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UPI Sentinel</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">US</div>
+      <div>
+        <strong>UPI SENTINEL</strong>
+        <span>Fraud Risk Intelligence</span>
+      </div>
+    </div>
+    <nav class="nav">
+      <button class="active" data-page="overview">Overview</button>
+      <button data-page="monitor">Transaction Monitor</button>
+      <button data-page="queue">Investigation Queue</button>
+      <button data-page="cases">Cases</button>
+      <button data-page="analytics">Analytics</button>
+      <button data-page="signals">Rules & Signals</button>
+      <button data-page="system">System</button>
+    </nav>
+    <div class="sidebar-status">
+      <div><span>MODEL</span><b id="sideModel">XGBoost v1</b></div>
+      <div><span>ENGINE</span><b class="ok">ONLINE</b></div>
+      <div><span>DATA</span><b>SYNTHETIC</b></div>
+      <div><span>ENVIRONMENT</span><b>LOCAL</b></div>
+    </div>
+  </aside>
+
+  <main class="app">
+    <header class="topbar">
+      <div class="search">Search transactions, cases, customers, devices</div>
+      <div class="top-actions">
+        <span class="pill">LOCAL · SYNTHETIC DATA</span>
+        <span class="status-dot">ONLINE</span>
+        <span class="bell">3</span>
+        <span class="analyst">Risk Analyst</span>
+      </div>
+    </header>
+
+    <div id="error" class="error hidden"></div>
+
+    <section class="page active" id="page-overview">
+      <div class="hero">
+        <div>
+          <p class="eyebrow">UPI RISK OPERATIONS</p>
+          <h1>UPI SENTINEL</h1>
+          <p>UPI transaction monitoring, risk intelligence, and fraud investigation.</p>
+        </div>
+        <div class="hero-flow">
+          <span>Synthetic UPI Transaction</span><span>Ingestion</span><span>Fraud Detection</span><span>Evidence</span><span>Analyst Decision</span>
+        </div>
+      </div>
+
+      <section class="metrics" id="metricGrid"></section>
+
+      <section class="grid-main">
+        <article class="panel">
+          <div class="panel-head">
+            <div><h2>Risk Overview</h2><p>Distribution from stored backend predictions</p></div>
+          </div>
+          <div id="riskDistribution" class="distribution"></div>
+          <div class="mini-grid">
+            <div><span>Fraud Rate</span><b id="fraudRate">0%</b></div>
+            <div><span>Review Rate</span><b id="reviewRate">0%</b></div>
+            <div><span>Block Rate</span><b id="blockRate">0%</b></div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div><h2>Synthetic Live Feed</h2><p>Local generator routed through the FastAPI fraud pipeline</p></div>
+            <span id="streamState" class="small-pill">PAUSED</span>
+          </div>
+          <div class="stream-controls">
+            <button id="startStream">Start</button>
+            <button class="secondary" id="pauseStream">Pause</button>
+            <button class="secondary" id="generateOne">Generate Transaction</button>
+          </div>
+          <label class="rate">Transactions / sec <input id="streamRate" type="number" min="1" max="5" value="1" /></label>
+          <div id="liveFeed" class="live-feed"></div>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>Investigation Queue</h2><p>Transactions requiring analyst attention</p></div>
+          <div class="filters">
+            <button class="filter active" data-filter="ALL">All</button>
+            <button class="filter" data-filter="HIGH">High Risk</button>
+            <button class="filter" data-filter="REVIEW">Review</button>
+            <button class="filter" data-filter="BLOCK">Block</button>
+          </div>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>Priority</th><th>Case ID</th><th>Transaction</th><th>Customer</th><th>Amount</th><th>Risk</th><th>Primary Signal</th><th>Age</th><th>Status</th></tr></thead><tbody id="queueRows"></tbody></table></div>
+      </section>
+    </section>
+
+    <section class="page" id="page-monitor">
+      <div class="page-title"><h1>Transaction Monitor</h1><p>Synthetic payment operations table from stored backend transactions.</p></div>
+      <section class="panel">
+        <div class="monitor-filters">
+          <input id="monitorSearch" placeholder="Search customer, merchant, device, transaction" />
+          <select id="riskFilter"><option value="ALL">All risk</option><option>APPROVE</option><option>REVIEW</option><option>BLOCK</option></select>
+          <div class="monitor-modes">
+            <button class="mode active" data-monitor-mode="ALL" type="button">All</button>
+            <button class="mode" data-monitor-mode="ATTENTION" type="button">Needs Attention</button>
+            <button class="mode" data-monitor-mode="HIGH_VALUE" type="button">High Value</button>
+            <button class="mode" data-monitor-mode="NEWEST" type="button">Newest</button>
+          </div>
+        </div>
+        <div class="monitor-layout">
+          <div class="table-wrap"><table><thead><tr><th>Time</th><th>Transaction ID</th><th>Customer</th><th>Merchant</th><th>Amount</th><th>Channel</th><th>Device</th><th>Risk</th><th>Decision</th><th>Status</th></tr></thead><tbody id="transactionRows"></tbody></table></div>
+          <aside class="transaction-inspector" id="transactionInspector">
+            <h2>Transaction Inspector</h2>
+            <p>Select a transaction to inspect payment context, risk decision, and matching investigation case.</p>
+          </aside>
+        </div>
+      </section>
+    </section>
+
+    <section class="page" id="page-queue">
+      <div class="page-title"><h1>Investigation Queue</h1><p>Prioritized case workload for fraud operations.</p></div>
+      <section class="panel"><div class="table-wrap"><table><thead><tr><th>Priority</th><th>Case ID</th><th>Transaction</th><th>Customer</th><th>Amount</th><th>Risk</th><th>Primary Signal</th><th>Age</th><th>Status</th></tr></thead><tbody id="queueRows2"></tbody></table></div></section>
+    </section>
+
+    <section class="page" id="page-cases">
+      <div class="case-layout">
+        <section class="panel case-workspace" id="caseDetails">
+          <h2>Investigation Case</h2>
+          <p>Select a case from the queue to open the investigation workspace.</p>
+        </section>
+        <section class="panel">
+          <h2>Synthetic UPI Transaction</h2>
+          <p class="muted">Event generator sends lean payloads to /predict. The backend model and risk engine decide the result.</p>
+          <form id="simulator" class="simulator">
+            <label>Customer<input name="customer_id" value="C001" required /></label>
+            <label>Merchant<input name="merchant_id" value="M_HIGH_RISK" required /></label>
+            <label>Amount<input name="amount" type="number" value="85000" min="1" required /></label>
+            <label>UPI Channel<input name="channel" value="UPI" required /></label>
+            <label>Device<input name="device_id" value="D777" required /></label>
+            <label>Location<input name="location" value="Local synthetic node" disabled /></label>
+            <label class="check"><input name="international" type="checkbox" checked /> International</label>
+            <div class="button-row">
+              <button type="button" id="normalTxn">Generate Normal Transaction</button>
+              <button type="button" id="suspiciousTxn">Generate Suspicious Transaction</button>
+              <button type="submit">Check Risk</button>
+            </div>
+          </form>
+          <div id="eventFlow" class="event-flow hidden"></div>
+          <div id="result" class="result hidden"></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="page" id="page-analytics">
+      <div class="page-title"><h1>Analytics</h1><p>Backend-driven fraud rates, volume, outcomes, and signal distribution.</p></div>
+      <section class="analytics-grid">
+        <article class="panel"><h2>Transaction Volume</h2><div id="volumeChart" class="chart-list"></div></article>
+        <article class="panel"><h2>Risk Distribution</h2><div id="riskDistribution2" class="distribution"></div></article>
+        <article class="panel"><h2>Investigation Outcomes</h2><div id="outcomeBars" class="chart-list"></div></article>
+        <article class="panel"><h2>Top Risk Signals</h2><div id="topSignals" class="signal-list"></div></article>
+      </section>
+    </section>
+
+    <section class="page" id="page-signals">
+      <div class="page-title"><h1>Risk Signals</h1><p>Explainable rules and evidence emitted by the backend risk pipeline.</p></div>
+      <section id="signalCards" class="signal-grid"></section>
+    </section>
+
+    <section class="page" id="page-system">
+      <div class="page-title"><h1>System</h1><p>Local-only synthetic environment. No real UPI, bank APIs, credentials, Kafka, or payment rails.</p></div>
+      <section class="system-grid" id="systemGrid"></section>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
